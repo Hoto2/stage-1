@@ -13,7 +13,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="BlankPage1.xaml" />
+    <None Remove="Pages\Dowland.xaml" />
+    <None Remove="Pages\Play.xaml" />
+    <None Remove="Pages\Refresh.xaml" />
+    <None Remove="Pages\Save.xaml" />
+    <None Remove="Pages\Settings.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -43,7 +47,27 @@
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.7.250310001" />
   </ItemGroup>
   <ItemGroup>
-    <Page Update="BlankPage1.xaml">
+    <Page Update="Pages\Settings.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\Dowland.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\Refresh.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\Save.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\Play.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

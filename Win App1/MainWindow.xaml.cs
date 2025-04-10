@@ -1,5 +1,7 @@
-using Microsoft.UI.Xaml;
-using System.Threading.Tasks;
+п»їusing Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
+using System;
 
 namespace Win_App1
 {
@@ -10,16 +12,15 @@ namespace Win_App1
             this.InitializeComponent();
         }
 
-        private async void SubmitButton_Click(object sender, RoutedEventArgs e)
+        private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
-            string userInput = inputTextBox.Text;
-            outputTextBlock.Text = "";
-
-            // Плавне виведення символів
-            foreach (char c in userInput)
+            if (args.SelectedItem is NavigationViewItem navigationViewItem)
             {
-                outputTextBlock.Text += c;
-                await Task.Delay(50); // Час затримки між символами (можеш змінити)
+                string pageName = navigationViewItem.Tag.ToString()!;
+                Type pageType = Type.GetType($"Win_App1.Pages.{pageName}")!;
+                ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
+
+                sender.Header = navigationViewItem.Content.ToString();
             }
         }
     }
