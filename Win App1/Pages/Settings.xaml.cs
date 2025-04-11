@@ -14,8 +14,20 @@ namespace Win_App1.Pages
         public Settings()
         {
             this.InitializeComponent();
-            ElementSoundPlayer.State = ElementSoundPlayerState.On;
-            ElementSoundPlayer.State = ElementSoundPlayerState.Off;
+        }
+
+        private void ThemeToggleSwitch_Toggled(object sender, RoutedEventArgs e)
+        {
+            if (sender is ToggleSwitch toggleSwitch)
+            {
+                // Set the theme on the root element
+                if (this.XamlRoot.Content is FrameworkElement rootElement)
+                {
+                    rootElement.RequestedTheme = toggleSwitch.IsOn
+                        ? ElementTheme.Dark
+                        : ElementTheme.Light;
+                }
+            }
         }
     }
 }

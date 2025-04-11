@@ -5,7 +5,7 @@
     xmlns:local="using:Win_App1">
 
     <Grid>
-        <NavigationView x:Name="MainNavigationView" SelectionChanged="MainNavigationView_SelectionChanged">
+        <NavigationView x:Name="MainNavigationView" SelectionChanged="MainNavigationView_SelectionChanged" Background="{ThemeResource NavigationViewDefaultPaneBackground}">
 
             <!-- Головне меню -->
             <NavigationView.MenuItems>

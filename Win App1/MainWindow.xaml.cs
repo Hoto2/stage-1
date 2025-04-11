@@ -49,37 +49,43 @@ namespace Win_App1
                 {
                     if (accountWindow == null)
                     {
-                        // Створити нове вікно для сторінки "Account"
+                        // Create a new window for the "Account" page
                         accountWindow = new Window
                         {
                             Content = new Account()
                         };
 
-                        // Отримати дескриптор вікна
+                        // Get the window handle
                         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(accountWindow);
                         var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
                         var appWindow = AppWindow.GetFromWindowId(windowId);
 
-                        // Встановити розмір вікна
+                        // Set the window size
                         appWindow.Resize(new SizeInt32(800, 1000));
 
-                        // Примусово встановити "завжди поверх" (можна прибрати, якщо не потрібно)
+                        // Center the window on the screen with a slight vertical offset
+                        var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
+                        var centerX = (displayArea.WorkArea.Width - 800) / 2;
+                        var centerY = (displayArea.WorkArea.Height - 1000) / 2 + 90; // Added offset to move the window lower
+                        appWindow.Move(new PointInt32(centerX, centerY));
+
+                        // Optionally set "always on top" (can be removed if not needed)
                         if (appWindow.Presenter is OverlappedPresenter presenter)
                         {
                             presenter.IsAlwaysOnTop = true;
                         }
 
-                        // Активувати вікно та вивести його на передній план
+                        // Activate the window and bring it to the foreground
                         accountWindow.Activate();
                         ShowWindow(hwnd, SW_SHOWNORMAL);
                         SetForegroundWindow(hwnd);
 
-                        // Обробити подію закриття, щоб очистити посилання
+                        // Handle the close event to clear the reference
                         accountWindow.Closed += (s, e) => accountWindow = null;
                     }
                     else
                     {
-                        // Якщо вікно вже існує, вивести його на передній план
+                        // If the window already exists, bring it to the foreground
                         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(accountWindow);
                         ShowWindow(hwnd, SW_SHOWNORMAL);
                         SetForegroundWindow(hwnd);
