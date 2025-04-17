@@ -1,0 +1,34 @@
+<Application
+    x:Class="Win_App1.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Win_App1"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <controls:XamlControlsResources />
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Default theme -->
+            <ElementTheme x:Key="RequestedTheme">Light</ElementTheme>
+
+            <!-- Define DefaultTextForegroundBrush -->
+            <SolidColorBrush x:Key="DefaultTextForegroundBrush" Color="Black" />
+
+            <!-- Define AccountPageBackgroundBrush -->
+            <SolidColorBrush x:Key="AccountPageBackgroundBrush" Color="{ThemeResource AccountPageBackgroundColor}" />
+
+            <!-- Theme-specific background colors -->
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary x:Key="Light">
+                    <Color x:Key="AccountPageBackgroundColor">#FFFFFFFF</Color>
+                </ResourceDictionary>
+                <ResourceDictionary x:Key="Dark">
+                    <Color x:Key="AccountPageBackgroundColor">#FF1E1E1E</Color>
+                </ResourceDictionary>
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

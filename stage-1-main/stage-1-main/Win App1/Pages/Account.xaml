@@ -1,0 +1,25 @@
+<Page
+    x:Class="Win_App1.Pages.Account"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Win_App1.Pages"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <TextBlock
+         Margin="0,20,0,0"
+         HorizontalAlignment="Center"
+         VerticalAlignment="Top"
+         FontSize="24"
+         FontFamily="Segoe UI"
+         Text="Account" />
+
+        <Image
+         Source="ms-appx:///Assets/Icon_account.png"
+         HorizontalAlignment="Center"
+         VerticalAlignment="Top"
+         Margin="0,50,0,0"
+         Width="120"
+         Height="120" />
+    </Grid>
+</Page>
