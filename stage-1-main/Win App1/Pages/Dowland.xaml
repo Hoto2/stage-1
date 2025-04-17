@@ -15,6 +15,7 @@
          HorizontalAlignment="Center"
          VerticalAlignment="Top"
          FontSize="24"
-         Text="Dowland"/> <!-- Fixed white color -->
+         Text="Dowland"
+         /> <!-- Fixed white color -->
     </Grid>
 </Page>

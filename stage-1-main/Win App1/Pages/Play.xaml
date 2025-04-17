@@ -15,6 +15,7 @@
          HorizontalAlignment="Center"
          VerticalAlignment="Top"
          FontSize="24"
-         Text="Play"/> <!-- Fixed white color -->
+         Text="Play"
+         /> <!-- Fixed white color -->
     </Grid>
 </Page>

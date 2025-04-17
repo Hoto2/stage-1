@@ -11,6 +11,9 @@
                 <controls:XamlControlsResources />
             </ResourceDictionary.MergedDictionaries>
 
+            <!-- Default theme -->
+            <ElementTheme x:Key="RequestedTheme">Light</ElementTheme>
+
             <!-- Define DefaultTextForegroundBrush -->
             <SolidColorBrush x:Key="DefaultTextForegroundBrush" Color="Black" />
 

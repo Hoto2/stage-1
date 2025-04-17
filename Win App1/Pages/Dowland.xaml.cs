@@ -1,4 +1,3 @@
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -9,17 +8,11 @@ namespace Win_App1.Pages
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
-    public sealed partial class Account : Page
+    public sealed partial class Dowland : Page
     {
-        public Account()
+        public Dowland()
         {
             this.InitializeComponent();
-
-            // Apply the current theme to the Account page
-            if (Application.Current is App app && app.Resources.TryGetValue("RequestedTheme", out var theme))
-            {
-                this.RequestedTheme = (ElementTheme)theme;
-            }
         }
     }
 }
