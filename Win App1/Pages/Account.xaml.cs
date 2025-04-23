@@ -1,115 +1,126 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using System;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Win_App1.Pages
 {
     public sealed partial class Account : Page
     {
         private bool isRegistrationMode = false;
+        public static User CurrentUser { get; private set; }
+        private readonly MainWindow _mainWindow;
 
-        public Account()
+        public Account(MainWindow mainWindow)
         {
             this.InitializeComponent();
+            _mainWindow = mainWindow;
+            InitializeUI();
+        }
 
-            if (Application.Current is App app &&
-                app.Resources.TryGetValue("RequestedTheme", out var theme))
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+        private void InitializeUI()
+        {
+            if (this.XamlRoot == null) return;
+
+            // Set theme based on application settings
+            if (Application.Current is App app && app.Resources.TryGetValue("RequestedTheme", out var theme))
             {
                 this.RequestedTheme = (ElementTheme)theme;
             }
 
+            // Initialize button text
             ActionButton.Content = "Увійти";
             SwitchModeButton.Content = "Реєстрація";
-            ConfirmPasswordBox.Visibility = Visibility.Collapsed;
-
-            ActionButton.Margin = new Thickness(0, 330, 0, 0);
-            SwitchModeButton.Margin = new Thickness(0, 400, 0, 0);
+            SetUIMode(false);
         }
 
-        private async void ActionButton_Click(object sender, RoutedEventArgs e)
+        private void ActionButton_Click(object sender, RoutedEventArgs e)
         {
-            string username = UsernameTextBox.Text;
-            string email = EmailTextBox.Text;
-            string password = PasswordBox.Password;
-            string confirmPassword = ConfirmPasswordBox.Password;
-
-            // Валідація даних
-            string errorMessage = string.Empty;
-
-            if (string.IsNullOrWhiteSpace(username))
+            if (!AreControlsInitialized())
             {
-                errorMessage += "Ім'я користувача не може бути порожнім.\n";
-            }
-            else if (username.Length <= 3)
-            {
-                errorMessage += "Ім'я користувача має містити більше 3 символів.\n";
-            }
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                errorMessage += "Електронна пошта не може бути порожньою.\n";
-            }
-            else if (!IsValidEmail(email))
-            {
-                errorMessage += "Введіть коректну електронну пошту.\n";
-            }
-
-            if (string.IsNullOrWhiteSpace(password))
-            {
-                errorMessage += "Пароль не може бути порожнім.\n";
-            }
-            else if (password.Length <= 7)
-            {
-                errorMessage += "Пароль має містити більше 7 символів.\n";
-            }
-
-            if (isRegistrationMode)
-            {
-                if (string.IsNullOrWhiteSpace(confirmPassword))
-                {
-                    errorMessage += "Підтвердження пароля не може бути порожнім.\n";
-                }
-                else if (password != confirmPassword)
-                {
-                    errorMessage += "Паролі не співпадають.\n";
-                }
-            }
-
-            if (!string.IsNullOrEmpty(errorMessage))
-            {
-                ContentDialog errorDialog = new ContentDialog
-                {
-                    Title = "Помилка",
-                    Content = errorMessage.TrimEnd(),
-                    CloseButtonText = "OK",
-                    XamlRoot = this.Content.XamlRoot
-                };
-
-                await errorDialog.ShowAsync();
+                _ = ShowErrorDialog("UI elements not initialized properly");
                 return;
             }
 
-            string action = isRegistrationMode ? "Реєстрація" : "Вхід";
-            string maskedEmail = MaskEmail(email);
-            string message = isRegistrationMode
-                ? $"Користувач {username} ({maskedEmail}) успішно зареєстрований!"
-                : $"Вітаємо, {username}! Ви увійшли в систему.";
-
-            ContentDialog successDialog = new ContentDialog
+            string errorMessage = ValidateInputs();
+            if (!string.IsNullOrEmpty(errorMessage))
             {
-                Title = action,
-                Content = message,
-                CloseButtonText = "OK",
-                XamlRoot = this.Content.XamlRoot
-            };
+                _ = ShowErrorDialog(errorMessage);
+                return;
+            }
 
-            await successDialog.ShowAsync();
+            _ = ProcessAuthentication();
+        }
+
+        private bool AreControlsInitialized()
+        {
+            return EmailTextBox != null && PasswordBox != null && ConfirmPasswordBox != null;
+        }
+
+        private string ValidateInputs()
+        {
+            var validator = new InputValidator(
+                isRegistrationMode ? UsernameTextBox.Text : null,
+                EmailTextBox.Text,
+                PasswordBox.Password,
+                isRegistrationMode ? ConfirmPasswordBox.Password : null,
+                isRegistrationMode
+            );
+
+            return validator.Validate();
+        }
+
+        private async Task ProcessAuthentication()
+        {
+            CurrentUser = new User(
+                isRegistrationMode ? UsernameTextBox.Text : "User",
+                EmailTextBox.Text
+            );
+
+            string action = isRegistrationMode ? "Реєстрація" : "Вхід";
+            string message = isRegistrationMode
+                ? $"Користувач {CurrentUser.Username} ({MaskEmail(CurrentUser.Email)}) успішно зареєстрований!"
+                : $"Вітаємо! Ви увійшли в систему.";
+
+            await ShowSuccessDialog(action, message);
+            NavigateToProfile();
 
             if (isRegistrationMode)
             {
                 SwitchMode();
             }
+        }
+
+        private async Task ShowErrorDialog(string message)
+        {
+            if (this.XamlRoot == null) return;
+
+            await new ContentDialog
+            {
+                Title = "Помилка",
+                Content = message,
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            }.ShowAsync();
+        }
+
+        private async Task ShowSuccessDialog(string title, string message)
+        {
+            if (this.XamlRoot == null) return;
+
+            await new ContentDialog
+            {
+                Title = title,
+                Content = message,
+                CloseButtonText = "OK",
+                XamlRoot = this.XamlRoot
+            }.ShowAsync();
         }
 
         private string MaskEmail(string email)
@@ -120,26 +131,9 @@ namespace Win_App1.Pages
             if (atIndex <= 0) return email;
 
             string localPart = email.Substring(0, atIndex);
-
-            // Відображаємо перші 3 символи або менше, якщо email занадто короткий
             int charsToShow = Math.Min(3, localPart.Length);
             string visiblePart = localPart.Substring(0, charsToShow);
-
-            // Додаємо 5 зірочок
-            return $"{visiblePart}*****";
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-                return Regex.IsMatch(email, pattern);
-            }
-            catch
-            {
-                return false;
-            }
+            return $"{visiblePart}*****{email.Substring(atIndex)}";
         }
 
         private void SwitchModeButton_Click(object sender, RoutedEventArgs e)
@@ -150,19 +144,143 @@ namespace Win_App1.Pages
         private void SwitchMode()
         {
             isRegistrationMode = !isRegistrationMode;
+            SetUIMode(isRegistrationMode);
+        }
 
-            ActionButton.Content = isRegistrationMode ? "Зареєструватися" : "Увійти";
-            SwitchModeButton.Content = isRegistrationMode ? "Вхід" : "Реєстрація";
+        private void SetUIMode(bool registrationMode)
+        {
+            ActionButton.Content = registrationMode ? "Зареєструватися" : "Увійти";
+            SwitchModeButton.Content = registrationMode ? "Вхід" : "Реєстрація";
+            UsernameTextBox.Visibility = registrationMode ? Visibility.Visible : Visibility.Collapsed;
+            ConfirmPasswordBox.Visibility = registrationMode ? Visibility.Visible : Visibility.Collapsed;
 
-            ConfirmPasswordBox.Visibility = isRegistrationMode ? Visibility.Visible : Visibility.Collapsed;
+            // Clear fields when switching modes
+            UsernameTextBox.Text = string.Empty;
             ConfirmPasswordBox.Password = string.Empty;
 
-            ActionButton.Margin = isRegistrationMode ? new Thickness(0, 400, 0, 0) : new Thickness(0, 330, 0, 0);
-            SwitchModeButton.Margin = isRegistrationMode ? new Thickness(0, 470, 0, 0) : new Thickness(0, 400, 0, 0);
+            // Adjust margins for layout
+            EmailTextBox.Margin = registrationMode ? new Thickness(0, 190, 0, 0) : new Thickness(0, 120, 0, 0);
+            PasswordBox.Margin = registrationMode ? new Thickness(0, 260, 0, 0) : new Thickness(0, 190, 0, 0);
 
-            SwitchModeButton.Background = isRegistrationMode
-                ? (Microsoft.UI.Xaml.Media.Brush)Resources["SystemControlHighlightAltListAccentLowBrush"]
-                : new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+            if (registrationMode)
+            {
+                ConfirmPasswordBox.Margin = new Thickness(0, 330, 0, 0);
+                ActionButton.Margin = new Thickness(0, 400, 0, 0);
+                SwitchModeButton.Margin = new Thickness(0, 470, 0, 0);
+            }
+            else
+            {
+                ActionButton.Margin = new Thickness(0, 260, 0, 0);
+                SwitchModeButton.Margin = new Thickness(0, 330, 0, 0);
+            }
+
+            // Update button styling
+            SwitchModeButton.Background = registrationMode
+                ? (Brush)Resources["SystemControlHighlightAltListAccentLowBrush"]
+                : new SolidColorBrush(Microsoft.UI.Colors.Transparent);
+        }
+
+        private void NavigateToProfile()
+        {
+            _mainWindow.NavigateToProfile();
+
+            // Close the Account window
+            var app = Application.Current as App;
+            if (app?.AccountWindow != null)
+            {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.AccountWindow);
+                ShowWindow(hwnd, 0); // SW_HIDE
+            }
+        }
+    }
+
+    public class User
+    {
+        public string Username { get; }
+        public string Email { get; }
+
+        public User(string username, string email)
+        {
+            Username = username;
+            Email = email;
+        }
+    }
+
+    public class InputValidator
+    {
+        private readonly string username;
+        private readonly string email;
+        private readonly string password;
+        private readonly string confirmPassword;
+        private readonly bool isRegistrationMode;
+
+        public InputValidator(string username, string email, string password, string confirmPassword, bool isRegistrationMode)
+        {
+            this.username = username;
+            this.email = email;
+            this.password = password;
+            this.confirmPassword = confirmPassword;
+            this.isRegistrationMode = isRegistrationMode;
+        }
+
+        public string Validate()
+        {
+            string errorMessage = string.Empty;
+
+            if (isRegistrationMode)
+            {
+                errorMessage += ValidateUsername();
+            }
+
+            errorMessage += ValidateEmail();
+            errorMessage += ValidatePassword();
+
+            if (isRegistrationMode)
+            {
+                errorMessage += ValidateConfirmPassword();
+            }
+
+            return errorMessage.TrimEnd();
+        }
+
+        private string ValidateUsername()
+        {
+            string error = string.Empty;
+            if (string.IsNullOrWhiteSpace(username))
+                error += "Ім'я користувача не може бути порожнім.\n";
+            else if (username.Length <= 3)
+                error += "Ім'я користувача має містити більше 3 символів.\n";
+            return error;
+        }
+
+        private string ValidateEmail()
+        {
+            string error = string.Empty;
+            if (string.IsNullOrWhiteSpace(email))
+                error += "Електронна пошта не може бути порожньою.\n";
+            else if (!Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+                error += "Введіть коректну електронну пошту.\n";
+            return error;
+        }
+
+        private string ValidatePassword()
+        {
+            string error = string.Empty;
+            if (string.IsNullOrWhiteSpace(password))
+                error += "Пароль не може бути порожнім.\n";
+            else if (password.Length <= 7)
+                error += "Пароль має містити більше 7 символів.\n";
+            return error;
+        }
+
+        private string ValidateConfirmPassword()
+        {
+            string error = string.Empty;
+            if (string.IsNullOrWhiteSpace(confirmPassword))
+                error += "Підтвердження пароля не може бути порожнім.\n";
+            else if (password != confirmPassword)
+                error += "Паролі не співпадають.\n";
+            return error;
         }
     }
 }

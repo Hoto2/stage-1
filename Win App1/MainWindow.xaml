@@ -12,7 +12,7 @@
                 <NavigationViewItem Icon="Play" Content="Play" Tag="Play" />
                 <NavigationViewItem Icon="Save" Content="Save" Tag="Save" />
                 <NavigationViewItem Icon="Refresh" Content="Refresh" Tag="Refresh" />
-                <NavigationViewItem Icon="Download" Content="Dowland" Tag="Dowland" />
+                <NavigationViewItem Icon="Message" Content="Message" Tag="Message" />
             </NavigationView.MenuItems>
 
             <!-- Нижнє меню -->
@@ -20,6 +20,11 @@
                 <NavigationViewItem Tag="Account" Content="Account">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE910;" FontFamily="Segoe MDL2 Assets"/>
+                    </NavigationViewItem.Icon>
+                </NavigationViewItem>
+                <NavigationViewItem Tag="Profile" Content="Profile">
+                    <NavigationViewItem.Icon>
+                        <FontIcon Glyph="&#xE77B;" FontFamily="Segoe MDL2 Assets"/>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
             </NavigationView.FooterMenuItems>

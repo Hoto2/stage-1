@@ -16,8 +16,8 @@ namespace Win_App1
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
 
+        private const int SW_HIDE = 0;
         private const int SW_SHOWNORMAL = 1;
-        private Window? Account; // Змінено з accountWindow на Account
 
         public MainWindow()
         {
@@ -27,8 +27,7 @@ namespace Win_App1
 
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
-            // Закриття вікна "Account", якщо воно відкрите
-            Account?.Close();
+            (Application.Current as App)?.AccountWindow?.Close();
         }
 
         private void MainNavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -47,78 +46,64 @@ namespace Win_App1
                     NavigateToPage(navigationViewItem);
                 }
 
-                // Оновлення заголовка
                 sender.Header = navigationViewItem.Content?.ToString();
             }
         }
 
         private void HandleAccountWindow()
         {
-            if (Account == null)
+            var app = Application.Current as App;
+            if (app?.AccountWindow == null)
             {
-                // Створення нового вікна для сторінки "Account"
-                Account = new Window
+                app.AccountWindow = new Window
                 {
-                    Content = new Pages.Account(),
+                    Content = new Pages.Account(this),
                     Title = "Account"
                 };
 
-                // Синхронізація теми
-                var currentTheme = ((FrameworkElement)this.Content).RequestedTheme;
-                ((FrameworkElement)Account.Content).RequestedTheme = currentTheme;
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.AccountWindow);
+                var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                var appWindow = AppWindow.GetFromWindowId(windowId);
 
-                // Налаштування вікна
-                ConfigureWindow(Account, 800, 1000, 90);
+                // Налаштування розміру та позиції
+                appWindow.Resize(new SizeInt32(800, 1000));
+                var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
+                appWindow.Move(new PointInt32(
+                    (displayArea.WorkArea.Width - 800) / 2,
+                    (displayArea.WorkArea.Height - 1000) / 2 + 90));
 
-                Account.Closed += (s, e) => Account = null;
+                app.AccountWindow.Closed += (s, e) => app.AccountWindow = null;
             }
-            else
-            {
-                // Якщо вікно вже існує, підняти його на передній план
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(Account);
-                ShowWindow(hwnd, SW_SHOWNORMAL);
-                SetForegroundWindow(hwnd);
-            }
+
+            var accountHwnd = WinRT.Interop.WindowNative.GetWindowHandle(app.AccountWindow);
+            ShowWindow(accountHwnd, SW_SHOWNORMAL);
+            SetForegroundWindow(accountHwnd);
         }
 
         private void CloseAccountWindow()
         {
-            Account?.Close();
-            Account = null;
+            var app = Application.Current as App;
+            app?.AccountWindow?.Close();
+            app.AccountWindow = null;
         }
 
         private void NavigateToPage(NavigationViewItem navigationViewItem)
         {
             string pageName = navigationViewItem.Tag?.ToString() ?? string.Empty;
             Type pageType = Type.GetType($"Win_App1.Pages.{pageName}")!;
-            ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
+            ContentFrame.Navigate(pageType, null, new SlideNavigationTransitionInfo()
+            {
+                Effect = SlideNavigationTransitionEffect.FromRight
+            });
         }
 
-        private void ConfigureWindow(Window window, int width, int height, int verticalOffset)
+        public void NavigateToProfile()
         {
-            // Отримання HWND
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
-            var appWindow = AppWindow.GetFromWindowId(windowId);
-
-            // Налаштування розміру
-            appWindow.Resize(new SizeInt32(width, height));
-
-            // Центрування вікна
-            var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Primary);
-            var centerX = (displayArea.WorkArea.Width - width) / 2;
-            var centerY = (displayArea.WorkArea.Height - height) / 2 + verticalOffset;
-            appWindow.Move(new PointInt32(centerX, centerY));
-
-            // Встановлення "поверх усіх"
-            if (appWindow.Presenter is OverlappedPresenter presenter)
-            {
-                presenter.IsAlwaysOnTop = true;
-            }
-
-            // Показати вікно
-            ShowWindow(hwnd, SW_SHOWNORMAL);
-            SetForegroundWindow(hwnd);
+            ContentFrame.Navigate(typeof(Pages.Profile), null,
+                new SlideNavigationTransitionInfo()
+                {
+                    Effect = SlideNavigationTransitionEffect.FromRight
+                });
         }
     }
 }

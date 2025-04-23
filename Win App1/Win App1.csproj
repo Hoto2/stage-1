@@ -14,8 +14,9 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Pages\Account.xaml" />
-    <None Remove="Pages\Dowland.xaml" />
+    <None Remove="Pages\Message.xaml" />
     <None Remove="Pages\Play.xaml" />
+    <None Remove="Pages\Profile.xaml" />
     <None Remove="Pages\Refresh.xaml" />
     <None Remove="Pages\Save.xaml" />
     <None Remove="Pages\Settings.xaml" />
@@ -48,17 +49,22 @@
     <PackageReference Include="WinUI3Localizer" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <Page Update="Pages\Message.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Page Update="Pages\Profile.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
     <Page Update="Pages\Account.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
     <Page Update="Pages\Settings.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <Page Update="Pages\Dowland.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
